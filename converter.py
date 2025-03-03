@@ -1,12 +1,19 @@
 import os
 from fpdf import FPDF
+import regex
+
+ignoredFileExtensions = ['pdf', 'txt', 'jpg', 'png', 'bmp', 'mp3', 'mp4', 'wav', 'jpeg']
+ignoredFileNames = ['converter.py', 'readme.md']
+ignoredFolderExpression = regex.compile(r'^\..*')
 
 def add_txt_extension(directory):
     for root, dirs, files in os.walk(directory):
+        dirs[:] = [dir for dir in dirs if not ignoredFolderExpression.match(dir)]
         for filename in files:
-            if filename != 'converter.py' and not filename.endswith('.txt') and not filename.endswith('.pdf'):
-                new_name = f"{filename}.txt"
-                os.rename(os.path.join(root, filename), os.path.join(root, new_name))
+            if filename in ignoredFileNames or any(filename.endswith(extension) for extension in ignoredFileExtensions):
+                continue
+            new_name = f"{filename}.txt"
+            os.rename(os.path.join(root, filename), os.path.join(root, new_name))
 
 def create_pdf_from_txt(directory):
     for root, dirs, files in os.walk(directory):
